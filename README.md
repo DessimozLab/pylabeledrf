@@ -20,7 +20,7 @@ pip install pylabeledrf
 
 ## Documentation
 
-Documentation is available <a href="http://dessimozlab.github.io/pylabeledrf/doc/html/">here</a>.
+Documentation is available <a href="http://dessimozlab.github.io/pylabeledrf/build/html/">here</a>.
 
 ## Example
 
