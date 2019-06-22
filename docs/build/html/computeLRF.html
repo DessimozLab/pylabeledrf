@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>computeLRF module &#8212; pylabeledrf 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="pylabeledrf 0.0.1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to pylabeledrf’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pylabeledrf.computeLRF">
+<span id="computelrf-module"></span><h1>computeLRF module<a class="headerlink" href="#module-pylabeledrf.computeLRF" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pylabeledrf.computeLRF.computeLRF">
+<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">computeLRF</code><span class="sig-paren">(</span><em>intree1</em>, <em>intree2</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.computeLRF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to estimate the labeled Robinson-Foulds distance. This is a 
+heuristic which returns an upper bound on the distance.</p>
+<p>Trees need to have their inner nodes with a label attribute &#8220;speciation&#8221; 
+or &#8220;duplication&#8221;. To correctly process gene trees from Ensembl, use the
+<a class="reference internal" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="pylabeledrf.computeLRF.parseEnsemblLabels"><code class="xref py py-func docutils literal"><span class="pre">parseEnsemblLabels()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>intree1</strong> &#8211; a labeled tree as Dendropy object</li>
+<li><strong>intree2</strong> &#8211; a labeled tree as Dendropy object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylabeledrf.computeLRF.mutateLabeledTree">
+<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">mutateLabeledTree</code><span class="sig-paren">(</span><em>tree</em>, <em>n</em>, <em>p_flip=0.3</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.mutateLabeledTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to perform random edits to labeled tree. For each <code class="docutils literal"><span class="pre">n</span></code> edit, the 
+probability of a flip is specified by p_flip, and the rest of the 
+probability density is evenly split among all potential edges to flip and 
+all nodes with degree &gt;3.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tree</strong> &#8211; a labeled tree as Dendropy object</li>
+<li><strong>n</strong> &#8211; number of edits</li>
+<li><strong>pflip</strong> &#8211; probability of flipping between &#8220;duplication&#8221; and &#8220;speciation&#8221; state (0.3 by default)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylabeledrf.computeLRF.parseEnsemblLabels">
+<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">parseEnsemblLabels</code><span class="sig-paren">(</span><em>intree</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to convert a Dendropy tree obtained from Ensembl (in NHX) format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>intree</strong> &#8211; a tree as Dendropy object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylabeledrf.computeLRF.randomLabels">
+<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">randomLabels</code><span class="sig-paren">(</span><em>intree</em>, <em>p_speciation=0.7</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.randomLabels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to assign random speciation and duplication nodes to a tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>intree</strong> &#8211; a tree as Dendropy object</li>
+<li><strong>p_speciation</strong> &#8211; probability of a speciation node.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to pylabeledrf&#8217;s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/computeLRF.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Christophe Dessimoz.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.8</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/computeLRF.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
