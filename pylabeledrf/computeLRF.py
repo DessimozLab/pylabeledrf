@@ -24,7 +24,7 @@ def computeLRF(intree1,intree2):
 
     Trees need to have their inner nodes with a label attribute "speciation" 
     or "duplication". To correctly process gene trees from Ensembl, use the
-    :func:`parseEnsemblLabels`
+    :func:`parseEnsemblLabels`.
 
     :param intree1: a labeled tree as Dendropy object
     :param intree2: a labeled tree as Dendropy object
@@ -360,10 +360,11 @@ def mutateLabeledTree(tree, n, p_flip=0.3):
     probability of a flip is specified by p_flip, and the rest of the 
     probability density is evenly split among all potential edges to flip and 
     all nodes with degree >3.
+    Returns a new tree (leaves the input tree unchanged)
 
     :param tree: a labeled tree as Dendropy object
     :param n: number of edits
-    :param pflip: probability of flipping between "duplication" and "speciation" state (0.3 by default)
+    :param p_flip: probability of flipping between "duplication" and "speciation" state (0.3 by default)
     """
     t = tree.clone(depth=1)
     e = f = c = 0
@@ -407,7 +408,7 @@ def mutateLabeledTree(tree, n, p_flip=0.3):
 def parseEnsemblLabels(intree):
     """
     Function to convert a Dendropy tree obtained from Ensembl (in NHX) format.
-    Returns a new tree. 
+    Returns a new tree (leaves the input tree unchanged)
 
     :param intree: a tree as Dendropy object
     """
@@ -424,7 +425,7 @@ def parseEnsemblLabels(intree):
 def randomLabels(intree, p_speciation=0.7):
     """
     Function to assign random speciation and duplication nodes to a tree. 
-    Returns a new tree.
+    Returns a new tree (leaves the input tree unchanged)
 
     :param intree: a tree as Dendropy object
     :param p_speciation: probability of a speciation node. 
