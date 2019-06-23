@@ -24,7 +24,23 @@ Documentation is available <a href="http://dessimozlab.github.io/pylabeledrf/bui
 
 ## Example
 
+```python
+from pylabeledrf.computeLRF import *
+import dendropy
+taxa = dendropy.TaxonNamespace()
 
+# retrieve the test TP53 reconciled tree (from Ensembl compara 96)
+p53 = dendropy.Tree.get_from_url(
+    'https://raw.githubusercontent.com/DessimozLab/pylabeledrf/master/test/p53.nhx', 
+'newick', taxon_namespace=taxa)
+t1 = parseEnsemblLabels(p53)
+
+t2 = mutateLabeledTree(t1, 5)
+computeLRF(t1,t2)
+
+t3 = randomLabels(t1)
+computeLRF(t1,t3)
+```
 
 
 ## License
@@ -46,6 +62,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-~                                                                               
-~                                                                               
-~               

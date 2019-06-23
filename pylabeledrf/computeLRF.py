@@ -365,22 +365,23 @@ def mutateLabeledTree(tree, n, p_flip=0.3):
     :param n: number of edits
     :param pflip: probability of flipping between "duplication" and "speciation" state (0.3 by default)
     """
+    t = tree.clone(depth=1)
     e = f = c = 0
     for i in range(0, n):
         logging.debug(i)
         #potential nodes
 
         potential_nodes_to_collapse = []
-        for n in tree.internal_nodes():
+        for n in t.internal_nodes():
             #skip the root node
             if n.parent_node == None:
                 continue
             if n.label == n.parent_node.label and n.label != None:
                 potential_nodes_to_collapse.append(n)
-        potential_nodes_to_flip = [n for n in tree.internal_nodes() if 
+        potential_nodes_to_flip = [n for n in t.internal_nodes() if 
             n.label != None]
-        potential_nodes_to_expand = [n for n in tree.internal_nodes() if 
-            len(n.incident_edges()) > 3 and n != tree.seed_node]
+        potential_nodes_to_expand = [n for n in t.internal_nodes() if 
+            len(n.incident_edges()) > 3 and n != t.seed_node]
         
         
         ncol = len(potential_nodes_to_collapse)
@@ -398,37 +399,44 @@ def mutateLabeledTree(tree, n, p_flip=0.3):
             else:
                 e += 1
                 extend_node(potential_nodes_to_expand[x-ncol])
-        logging.debug(tree)
+        logging.debug(t)
     logging.info('#flips %s #col %s, #exp %s',f,c,e)
-    return(tree)
+    return(t)
 
 
 def parseEnsemblLabels(intree):
     """
-    Function to convert a Dendropy tree obtained from Ensembl (in NHX) format. 
+    Function to convert a Dendropy tree obtained from Ensembl (in NHX) format.
+    Returns a new tree. 
 
     :param intree: a tree as Dendropy object
     """
-    for n in intree.internal_nodes():
+    t = intree.clone(depth=1)
+    for n in t.internal_nodes():
         if n.annotations['D'].value == 'Y' or n.annotations['DD'].value == 'Y':
             n.label = 'duplication'
         else:
             n.label = 'speciation'
-    intree.seed_node.label = None
+    t.seed_node.label = None
+    return(t)
+
 
 def randomLabels(intree, p_speciation=0.7):
     """
-    Function to assign random speciation and duplication nodes to a tree.
+    Function to assign random speciation and duplication nodes to a tree. 
+    Returns a new tree.
 
     :param intree: a tree as Dendropy object
     :param p_speciation: probability of a speciation node. 
     """
-    for n in intree.internal_nodes():
+    t = intree.clone(depth=1)
+    for n in t.internal_nodes():
         if random.random() < p_speciation:
             n.label = 'speciation'
         else:
             n.label = 'duplication'
-    intree.seed_node.label = None
+    t.seed_node.label = None
+    return(t)
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
