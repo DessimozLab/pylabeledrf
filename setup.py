@@ -28,6 +28,6 @@ setuptools.setup(
          "Operating System :: OS Independent",
      ],
      install_requires=[
-          'dendropy',
+          'dendropy>=4',
      ],
  )
