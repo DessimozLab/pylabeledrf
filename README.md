@@ -32,12 +32,14 @@ taxa = dendropy.TaxonNamespace()
 # retrieve the test TP53 reconciled tree (from Ensembl compara 96)
 p53 = dendropy.Tree.get_from_url(
     'https://raw.githubusercontent.com/DessimozLab/pylabeledrf/master/test/p53.nhx', 
-'newick', taxon_namespace=taxa)
+    'newick', taxon_namespace=taxa)
 t1 = parseEnsemblLabels(p53)
 
+# introduce 5 random edits and compute the distance
 t2 = mutateLabeledTree(t1, 5)
 computeLRF(t1,t2)
 
+# randomise the labels and compute the distance
 t3 = randomLabels(t1)
 computeLRF(t1,t3)
 ```
