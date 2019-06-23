@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>computeLRF module &mdash; pylabeledrf 0.0.1 documentation</title>
+  <title>computeLRF module &mdash; pylabeledrf 0.1.1 documentation</title>
   
 
   
@@ -23,7 +23,7 @@
       <script type="text/javascript">
           var DOCUMENTATION_OPTIONS = {
               URL_ROOT:'./',
-              VERSION:'0.0.1',
+              VERSION:'0.1.1',
               LANGUAGE:'None',
               COLLAPSE_INDEX:false,
               FILE_SUFFIX:'.html',
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.0.1
+                0.1.1
               </div>
             
           
@@ -167,7 +167,7 @@
 heuristic which returns an upper bound on the distance.</p>
 <p>Trees need to have their inner nodes with a label attribute &#8220;speciation&#8221; 
 or &#8220;duplication&#8221;. To correctly process gene trees from Ensembl, use the
-<a class="reference internal" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="pylabeledrf.computeLRF.parseEnsemblLabels"><code class="xref py py-func docutils literal"><span class="pre">parseEnsemblLabels()</span></code></a></p>
+<a class="reference internal" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="pylabeledrf.computeLRF.parseEnsemblLabels"><code class="xref py py-func docutils literal"><span class="pre">parseEnsemblLabels()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -188,7 +188,8 @@ or &#8220;duplication&#8221;. To correctly process gene trees from Ensembl, use 
 <dd><p>Function to perform random edits to labeled tree. For each <code class="docutils literal"><span class="pre">n</span></code> edit, the 
 probability of a flip is specified by p_flip, and the rest of the 
 probability density is evenly split among all potential edges to flip and 
-all nodes with degree &gt;3.</p>
+all nodes with degree &gt;3.
+Returns a new tree (leaves the input tree unchanged)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -196,7 +197,7 @@ all nodes with degree &gt;3.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>tree</strong> &#8211; a labeled tree as Dendropy object</li>
 <li><strong>n</strong> &#8211; number of edits</li>
-<li><strong>pflip</strong> &#8211; probability of flipping between &#8220;duplication&#8221; and &#8220;speciation&#8221; state (0.3 by default)</li>
+<li><strong>p_flip</strong> &#8211; probability of flipping between &#8220;duplication&#8221; and &#8220;speciation&#8221; state (0.3 by default)</li>
 </ul>
 </td>
 </tr>
@@ -208,7 +209,7 @@ all nodes with degree &gt;3.</p>
 <dt id="pylabeledrf.computeLRF.parseEnsemblLabels">
 <code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">parseEnsemblLabels</code><span class="sig-paren">(</span><em>intree</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to convert a Dendropy tree obtained from Ensembl (in NHX) format.
-Returns a new tree.</p>
+Returns a new tree (leaves the input tree unchanged)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -223,7 +224,7 @@ Returns a new tree.</p>
 <dt id="pylabeledrf.computeLRF.randomLabels">
 <code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">randomLabels</code><span class="sig-paren">(</span><em>intree</em>, <em>p_speciation=0.7</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.randomLabels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to assign random speciation and duplication nodes to a tree. 
-Returns a new tree.</p>
+Returns a new tree (leaves the input tree unchanged)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
