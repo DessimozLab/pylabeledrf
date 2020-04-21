@@ -100,7 +100,7 @@ def computeLRF(intree1,intree2):
        
     return(rf+sub)
 
-def getIslands(b,bTn):
+def getIslands(t,goodedges):
     '''
     Function to return the list of nodes in islands, and a unique island id
     '''
@@ -513,10 +513,10 @@ def mutateLabeledTree(tree, n, p_flip=0.3, model='LRF'):
 def collapse_node(node,model='LRF'):
     logging.debug(node)
     if model == 'ELRF':
-	if node.parent_node != None and node.label == node.parent_node.label:
-	    node.edge.collapse()
-	else:
-	    raise ValueError('this edge cannot be collapsed without a flip!')
+        if node.parent_node != None and node.label == node.parent_node.label:
+            node.edge.collapse()
+        else:
+            raise ValueError('this edge cannot be collapsed without a flip!')
     elif model == 'LRF':
         node.edge.collapse()
     else:
