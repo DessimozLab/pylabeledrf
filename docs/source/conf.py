@@ -55,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pylabeledrf'
-copyright = '2019, Christophe Dessimoz'
+copyright = '2019-2020, Christophe Dessimoz'
 author = 'Christophe Dessimoz'
 
 # The version info for the project you're documenting, acts as replacement for

@@ -1,11 +1,17 @@
 # pylabeledrf
 
-pylabeledrf is a heuristic to compute an extension of the Robinson Foulds tree topological distance between labeled topologies, where inner nodes are labeled with speciation or duplication events.
+pylabeledrf is a package to compute an extension of the Robinson Foulds tree topological distance between labeled topologies, where inner nodes are labeled with speciation or duplication events.
+
+From version 0.2 onwards, pylabeledrf includes two functions:
+
+ - computeLRF(), which computes exactly and efficiently the Labeled Robinson Foulds (LRF).
+ - computeELRF(), which is a heuristic to compute the edge-based Labeled Robinson Foulds (ELRF). 
 
 ## Citation
 If you use our package in your work, please consider citing:
 
-Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Manuel Lafond, Gabriela Lobinska, *Extending the Robinson-Foulds distance to reconciled trees*, submitted
+ - For LRF: Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Yannis Nevers, *A linear time solution to the Labeled Robinson-Foulds distance problem*, submitted 
+ - For ELRF: Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Manuel Lafond, Gabriela Lobinska, *Extending the Robinson-Foulds distance to reconciled trees*, APBC 2020 and BMC Genomics, in press
 
 
 ## Installation
@@ -47,7 +53,7 @@ computeLRF(t1,t3)
 
 ## License
 
-Copyright 2019 Christophe Dessimoz
+Copyright 2019-2020 Christophe Dessimoz
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

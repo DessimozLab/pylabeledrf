@@ -18,6 +18,16 @@ which include speciation and duplication nodes
 """ 
 
 def computeLRF(intree1,intree2):
+    """
+    Function to compute exactly the Labeled Robinson-Foulds (LRF) distance. 
+
+    Trees need to have their inner nodes with a label attribute "speciation" 
+    or "duplication". To correctly process gene trees from Ensembl, use the
+    :func:`parseEnsemblLabels`.
+
+    :param intree1: a labeled tree as Dendropy object
+    :param intree2: a labeled tree as Dendropy object
+    """
                                                                                                                      
     t1 = intree1.clone()
     t2 = intree2.clone()
@@ -101,9 +111,6 @@ def computeLRF(intree1,intree2):
     return(rf+sub)
 
 def getIslands(t,goodedges):
-    '''
-    Function to return the list of nodes in islands, and a unique island id
-    '''
 
     #                         ____
     #                        /
@@ -162,8 +169,8 @@ def getIslands(t,goodedges):
 
 def computeELRF(intree1,intree2):
     """
-    Function to estimate the labeled Robinson-Foulds distance. This is a 
-    heuristic which returns an upper bound on the distance. 
+    Function to estimate the edge-based labeled Robinson-Foulds distance. 
+    This is a heuristic which returns an upper bound on the distance. 
 
     Trees need to have their inner nodes with a label attribute "speciation" 
     or "duplication". To correctly process gene trees from Ensembl, use the
@@ -462,7 +469,7 @@ def mutateLabeledTree(tree, n, p_flip=0.3, model='LRF'):
     :param tree: a labeled tree as Dendropy object
     :param n: number of edits
     :param p_flip: probability of flipping between "duplication" and "speciation" state (0.3 by default)
-    :param model: either LRF (default), which requires edge additions/removals to be between same types, or SLRF, which has no such requirement.  
+    :param model: either ELRF, which requires edge additions/removals to be between same types, or LRF (default), which has no such requirement.  
     """
     t = tree.clone(depth=1)
     e = f = c = 0

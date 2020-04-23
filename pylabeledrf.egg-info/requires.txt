@@ -1,1 +1,1 @@
-dendropy
+dendropy>=4

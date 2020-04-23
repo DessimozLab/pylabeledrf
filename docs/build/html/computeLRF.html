@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>computeLRF module &mdash; pylabeledrf 0.1.1 documentation</title>
+  <title>computeLRF module &mdash; pylabeledrf 0.2.2 documentation</title>
   
 
   
@@ -23,7 +23,7 @@
       <script type="text/javascript">
           var DOCUMENTATION_OPTIONS = {
               URL_ROOT:'./',
-              VERSION:'0.1.1',
+              VERSION:'0.2.2',
               LANGUAGE:'None',
               COLLAPSE_INDEX:false,
               FILE_SUFFIX:'.html',
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.1.1
+                0.2.2
               </div>
             
           
@@ -161,10 +161,31 @@
   <div class="section" id="module-pylabeledrf.computeLRF">
 <span id="computelrf-module"></span><h1>computeLRF module<a class="headerlink" href="#module-pylabeledrf.computeLRF" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
+<dt id="pylabeledrf.computeLRF.computeELRF">
+<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">computeELRF</code><span class="sig-paren">(</span><em>intree1</em>, <em>intree2</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.computeELRF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to estimate the edge-based labeled Robinson-Foulds distance. 
+This is a heuristic which returns an upper bound on the distance.</p>
+<p>Trees need to have their inner nodes with a label attribute &#8220;speciation&#8221; 
+or &#8220;duplication&#8221;. To correctly process gene trees from Ensembl, use the
+<a class="reference internal" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="pylabeledrf.computeLRF.parseEnsemblLabels"><code class="xref py py-func docutils literal"><span class="pre">parseEnsemblLabels()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>intree1</strong> &#8211; a labeled tree as Dendropy object</li>
+<li><strong>intree2</strong> &#8211; a labeled tree as Dendropy object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="pylabeledrf.computeLRF.computeLRF">
 <code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">computeLRF</code><span class="sig-paren">(</span><em>intree1</em>, <em>intree2</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.computeLRF" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to estimate the labeled Robinson-Foulds distance. This is a 
-heuristic which returns an upper bound on the distance.</p>
+<dd><p>Function to compute exactly the Labeled Robinson-Foulds (LRF) distance.</p>
 <p>Trees need to have their inner nodes with a label attribute &#8220;speciation&#8221; 
 or &#8220;duplication&#8221;. To correctly process gene trees from Ensembl, use the
 <a class="reference internal" href="#pylabeledrf.computeLRF.parseEnsemblLabels" title="pylabeledrf.computeLRF.parseEnsemblLabels"><code class="xref py py-func docutils literal"><span class="pre">parseEnsemblLabels()</span></code></a>.</p>
@@ -184,7 +205,7 @@ or &#8220;duplication&#8221;. To correctly process gene trees from Ensembl, use 
 
 <dl class="function">
 <dt id="pylabeledrf.computeLRF.mutateLabeledTree">
-<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">mutateLabeledTree</code><span class="sig-paren">(</span><em>tree</em>, <em>n</em>, <em>p_flip=0.3</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.mutateLabeledTree" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pylabeledrf.computeLRF.</code><code class="descname">mutateLabeledTree</code><span class="sig-paren">(</span><em>tree</em>, <em>n</em>, <em>p_flip=0.3</em>, <em>model='LRF'</em><span class="sig-paren">)</span><a class="headerlink" href="#pylabeledrf.computeLRF.mutateLabeledTree" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to perform random edits to labeled tree. For each <code class="docutils literal"><span class="pre">n</span></code> edit, the 
 probability of a flip is specified by p_flip, and the rest of the 
 probability density is evenly split among all potential edges to flip and 
@@ -198,6 +219,7 @@ Returns a new tree (leaves the input tree unchanged)</p>
 <li><strong>tree</strong> &#8211; a labeled tree as Dendropy object</li>
 <li><strong>n</strong> &#8211; number of edits</li>
 <li><strong>p_flip</strong> &#8211; probability of flipping between &#8220;duplication&#8221; and &#8220;speciation&#8221; state (0.3 by default)</li>
+<li><strong>model</strong> &#8211; either ELRF, which requires edge additions/removals to be between same types, or LRF (default), which has no such requirement.</li>
 </ul>
 </td>
 </tr>
