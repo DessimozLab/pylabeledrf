@@ -28,6 +28,189 @@ def computeLRF(intree1,intree2):
     :param intree1: a labeled tree as Dendropy object
     :param intree2: a labeled tree as Dendropy object
     """
+
+    # This implementation builds upon the datastructure and ideas of
+    #    William HE Day, Optimal algorithms for comparing trees with 
+    #    labeled leaves
+    #    J Classification 2:7–28. 1985. doi: 10.1007/BF01908061
+
+
+    # Define the table X  according to (Day 1985) to have contiguous integers for
+    # each clade, and define a clade by the left-most and right-most identifiers,
+    # such as [4,7] for the clade [4,5,6,7].
+    # 
+    # Note we extend the table to contain the following fields, which will be 
+    # populated later in the algorithm:
+    #  3: node defining the clade in T1
+    #  4: node defining the clade in T2 
+    #  5: size of the island rooted in the clade in T1
+    #  6: size of the island rooted in the clade in T2 
+    #  7: labels in the island rooted in the clade in T1
+    #  8: labels in the island rooted in the clade in T2
+    def buildX(T):
+        X = []
+        n = len(T.leaf_nodes())
+        tax2id = {}
+        n2bip = {}
+
+        def buildX_r(T):
+            if T.is_leaf():
+                # left right id2taxon nodeT1 nodeT2 sizeIsland1 sizeIsland2 labels1 labels2
+                X.append([0,0,T.taxon,0,0,0,0,set(),set()])
+                i = len(X)-1
+                tax2id[T.taxon] = i
+                return(i,i)
+            else:
+                min_l=n
+                max_r=0
+                for c in T.child_node_iter():
+                    l,r = buildX_r(c)
+                    min_l=min(l,min_l)
+                    max_r=max(r,max_r)
+                X[min_l][0]=X[max_r][0]=min_l
+                X[min_l][1]=X[max_r][1]=max_r
+                X[min_l][3]=X[max_r][3]=T
+                n2bip[T]=[min_l,max_r]
+                return(min_l,max_r)
+        buildX_r(T.seed_node)
+        return(X,tax2id,n2bip)
+
+    # findgood() identifies the good edge in T2 and generates the 
+    # node-to-clade hash table 
+    def findgood(T,X,tax2id):
+        n2bip = {}
+        n = len(T.leaf_nodes())
+        def findgood_r(t):
+            if t.is_leaf():
+                i = tax2id[t.taxon]
+                return(i,i,1)
+            else:
+                min_l=n
+                max_r=0
+                tot_w=0 
+                for c in t.child_node_iter(): 
+                    l,r,w = findgood_r(c)
+                    min_l=min(l,min_l)
+                    max_r=max(r,max_r)
+                    tot_w+=w
+                if max_r-min_l+1 == tot_w:
+                    if (X[min_l][0]==min_l and X[min_l][1]==max_r):
+                        X[min_l][4]=t
+                        n2bip[t]=[min_l,max_r]
+                    elif (X[max_r][0]==min_l and X[max_r][1]==max_r):
+                        X[max_r][4]=t
+                        n2bip[t]=[min_l,max_r]
+                return(min_l,max_r,tot_w)
+        findgood_r(T.seed_node)
+        return(n2bip)
+
+    # this function is used to identify the islands and update the table X 
+    # with the relevant labels and sizes
+    def getIslandsDay(t,X,n2bip,isT1):
+
+        # An island is separated from the rest of the tree
+        # by good edges. In the traversal below, we do a preorder
+        # traversal and create a new island whenever we meet a clade
+        # defined in X
+        #                         ____
+        #                        /
+        #                 **** x6
+        #                *       \___
+        #         **** x3                ......
+        #        *       \___    ______x7
+        #   ----x1              /        ...
+        #        *       **** x4        ____
+        #         **** x2       ``--    /
+        #                *********** x5
+        #                              \_____
+        #
+
+        n = len(X)
+        off = 5 if isT1 else 6
+
+        def mytraversal(t,is_rooted,parentIslandId=0):
+
+            if t.is_leaf():
+                return()
+            try:
+                [l,r] = n2bip[t]
+            except KeyError:
+                l=r=0 #dummy value that will fail retrieval in X
+
+            row=-1
+            if (X[l][0]==l and X[l][1]==r and X[l][4]!=0):
+                row=l
+            elif (X[r][0]==l and X[r][1]==r and X[r][4]!=0):
+                row=r
+
+            # clade is in common (i.e. valid entry in X)
+            if row > -1: 
+                # end of previous island, so new island. 
+                islandId = row
+                X[row][off+2].add(t.label) 
+                for c in t.child_node_iter():
+                    mytraversal(c,is_rooted,islandId)
+            else:
+                # continue previous island
+                islandId = parentIslandId
+                # we process the node unless it's the fake root of an unrooted tree:
+                if not is_rooted and len(t.adjacent_nodes()) == 2:
+                    if t.label != None:
+                        warnings.warn('The root of an unrooted tree should not have a label')
+                else:
+                    X[islandId][off+2].add(t.label) 
+                    X[islandId][off] += 1 
+
+                for c in t.child_node_iter():
+                    mytraversal(c,is_rooted,islandId)
+
+        mytraversal(t.seed_node, t.is_rooted)
+        return()
+
+    # check that the taxon namespace is consistent
+    if intree1.taxon_namespace != intree2.taxon_namespace:
+        raise ValueError('Cannot compare trees defined with different taxon_namespace')
+    else:
+        taxa = intree1.taxon_namespace
+
+    # convert unrooted to rooted trees
+    if not intree1.is_rooted and not intree2.is_rooted:
+        t1=intree1.clone(depth=1)
+        t2=intree2.clone(depth=1)
+        
+        node_n1 =t1.find_node_for_taxon(taxa[-1])
+        t1.reroot_at_edge(node_n1.edge)
+        t1.prune_taxa([taxa[-1]])
+        node_n2 = t2.find_node_for_taxon(taxa[-1])
+        t2.reroot_at_edge(node_n2.edge)
+        t2.prune_taxa([taxa[-1]])
+        
+    elif intree1.is_rooted and intree2.is_rooted:
+        t1=intree1.clone(depth=1)
+        t2=intree2.clone(depth=1)
+    else:
+        raise TypeError('Cannot compare a rooted tree with an unrooted tree.')
+
+    X, tax2id, n12bip = buildX(t1)
+    n22bip = findgood(t2,X,tax2id)
+    getIslandsDay(t1,X,n12bip,True)
+    getIslandsDay(t2,X,n22bip,False)
+    rf = subs = 0
+    for i in X:
+        if i[4] != 0:
+            rf += i[5]+i[6]
+            if len(i[7].intersection(i[8])) == 0:
+                subs +=1
+    
+    logging.info('RF dist: %d | Label subst: %d | Total LRF: %d\n' % (rf,subs,rf+subs))
+    return(rf+subs)
+
+
+
+# this is a previous implementation based on bipartition vectors
+# It is superseeded by the above version, O(n), which uses the
+# perfect hashing scheme of Day 1985 to index the clades
+def computeLRF_old(intree1,intree2):
            
     t1 = intree1.clone()
     t2 = intree2.clone()
@@ -166,123 +349,6 @@ def getIslands(t,goodedges):
     mytraversal(t.seed_node, t.is_rooted)
     return(islands,node_island,sizeIslands)
 
-# define label2int according to (Day 1985) to have contiguous integers for
-# each clade, and define a clade by the left-most and right-most identifiers,
-# such as [4,7] for the clade [4,5,6,7]
-def buildX(T):
-    X = []
-    n = len(T.leaf_nodes())
-    tax2id = {}
-    n2bip = {}
-
-    def buildX_r(T):
-        if T.is_leaf():
-            # left right id2taxon nodeT1 nodeT2 sizeIsland1 sizeIsland2 labels1 labels2
-            X.append([0,0,T.taxon,0,0,0,0,set(),set()])
-            i = len(X)-1
-            tax2id[T.taxon] = i
-            return(i,i)
-        else:
-            min_l=n
-            max_r=0
-            for c in T.child_node_iter():
-                l,r = buildX_r(c)
-                min_l=min(l,min_l)
-                max_r=max(r,max_r)
-            X[min_l][0]=X[max_r][0]=min_l
-            X[min_l][1]=X[max_r][1]=max_r
-            X[min_l][3]=X[max_r][3]=T
-            n2bip[T]=[min_l,max_r]
-            return(min_l,max_r)
-    buildX_r(T.seed_node)
-    return(X,tax2id,n2bip)
-
-def findgood(T,X,tax2id):
-    n2bip = {}
-    n = len(T.leaf_nodes())
-    def findgood_r(t):
-        if t.is_leaf():
-            i = tax2id[t.taxon]
-            return(i,i,1)
-        else:
-            min_l=n
-            max_r=0
-            tot_w=0 
-            for c in t.child_node_iter(): 
-                l,r,w = findgood_r(c)
-                min_l=min(l,min_l)
-                max_r=max(r,max_r)
-                tot_w+=w
-            if max_r-min_l+1 == tot_w:
-                if (X[min_l][0]==min_l and X[min_l][1]==max_r):
-                    X[min_l][4]=t
-                    n2bip[t]=[min_l,max_r]
-                elif (X[max_r][0]==min_l and X[max_r][1]==max_r):
-                    X[max_r][4]=t
-                    n2bip[t]=[min_l,max_r]
-            return(min_l,max_r,tot_w)
-    findgood_r(T.seed_node)
-    return(n2bip)
-
-# trick is now
-def getIslands2(t,X,n2bip,isT1):
-
-    #                         ____
-    #                        /
-    #                 **** x6
-    #                *       \___
-    #         **** x3                ......
-    #        *       \___    ______x7
-    #   ----x1              /        ...
-    #        *       **** x4        ____
-    #         **** x2       ``--    /
-    #                *********** x5
-    #                              \_____
-    #
-
-
-    n = len(X)
-    off = 5 if isT1 else 6
-
-    def mytraversal(t,is_rooted,parentIslandId=0):
-
-        if t.is_leaf():
-            return()
-
-        try:
-            [l,r] = n2bip[t]
-        except KeyError:
-            l=r=0 #dummy value 
-
-        row=-1
-        if (X[l][0]==l and X[l][1]==r and X[l][4]!=0):
-            row=l
-        elif (X[r][0]==l and X[r][1]==r and X[r][4]!=0):
-            row=r
-
-        # clade is in common 
-        if row > -1: 
-            # end of previous island, so new island. 
-            islandId = row
-            X[row][off+2].add(t.label) 
-            for c in t.child_node_iter():
-                mytraversal(c,is_rooted,islandId)
-        else:
-            # continue previous island
-            islandId = parentIslandId
-            # we process the node unless it's the fake root of an unrooted tree:
-            if not is_rooted and len(t.adjacent_nodes()) == 2:
-                if t.label != None:
-                    warnings.warn('The root of an unrooted tree should not have a label')
-            else:
-                X[islandId][off+2].add(t.label) 
-                X[islandId][off] += 1 
-
-            for c in t.child_node_iter():
-                mytraversal(c,is_rooted,islandId)
-
-    mytraversal(t.seed_node, t.is_rooted)
-    return()
 
 # def identify_labelled_bipartitions(t):
 #
