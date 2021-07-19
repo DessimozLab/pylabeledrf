@@ -21,6 +21,7 @@ setuptools.setup(
      long_description=long_description,
      long_description_content_type="text/markdown",
      url="https://github.com/dessimozlab/pylabeledrf",
+     download_url="https://github.com/DessimozLab/pylabeledrf/archive/v0.2.2.tar.gz",
      packages=setuptools.find_packages(),
      classifiers=[
          "Programming Language :: Python :: 3",

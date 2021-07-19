@@ -9,29 +9,29 @@ import math
 import copy
 import sys
 
-""" A module to compute the Robinson Foulds distance extended to topologies 
+""" A module to compute the Robinson Foulds distance extended to topologies
 which include speciation and duplication nodes
 
 :author: Christophe Dessimoz
 :institute: University of Lausanne
 
-""" 
+"""
 
 def computeLRF(intree1,intree2):
     """
-    Function to compute exactly the Labeled Robinson-Foulds (LRF) distance. 
+    Function to compute exactly the Labeled Robinson-Foulds (LRF) distance.
 
-    Trees need to have their inner nodes with a label attribute "speciation" 
+    Trees need to have their inner nodes with a label attribute "speciation"
     or "duplication". To correctly process gene trees from Ensembl, use the
     :func:`parseEnsemblLabels`.
 
     :param intree1: a labeled tree as Dendropy object
     :param intree2: a labeled tree as Dendropy object
     """
-                                                                                                                     
+           
     t1 = intree1.clone()
     t2 = intree2.clone()
- 
+
     b1,bTn1 = identify_labelled_bipartitions(t1)
     b2,bTn2 = identify_labelled_bipartitions(t2)
 
@@ -54,7 +54,7 @@ def computeLRF(intree1,intree2):
     # go through all goodedges, and use them to match islands on either side
     for i in goodedges:
 
-        # only will match based one the child node of the goodedge    
+        # only will match based one the child node of the goodedge
         n1 = bTn1[i][0] if bTn1[i][0].parent_node == bTn1[i][1] else bTn1[i][1]
         n2 = bTn2[i][0] if bTn2[i][0].parent_node == bTn2[i][1] else bTn2[i][1]
 
@@ -104,10 +104,10 @@ def computeLRF(intree1,intree2):
 
         if len(islands1[0].intersection(islands2[0])) == 0:
             sub += 1
-            logging.info('Substitution needed between the two stars')      
+            logging.info('Substitution needed between the two stars')
     elif False in processed2:
         raise ValueError('At least one unprocessed island in t2 remaining. Should not happen.')
-       
+
     return(rf+sub)
 
 def getIslands(t,goodedges):
@@ -115,15 +115,15 @@ def getIslands(t,goodedges):
     #                         ____
     #                        /
     #                 **** x6
-    #                *       \___     
-    #         **** x3                ...... 
+    #                *       \___
+    #         **** x3                ......
     #        *       \___    ______x7
-    #   ----x1              /        ... 
-    #        *       **** x4        ____ 
+    #   ----x1              /        ...
+    #        *       **** x4        ____
     #         **** x2       ``--    /
     #                *********** x5
     #                              \_____
-    # 
+    #
 
 
     # the list island contains at position i the set of labels associated with the ith island
@@ -132,14 +132,14 @@ def getIslands(t,goodedges):
     node_island = {}
     countIsland = 0
     sizeIslands = [0]
-    
+
     def mytraversal(t,is_rooted,parentIslandId=0):
         nonlocal goodedges, islands, node_island, countIsland
-        
+
         if t.is_leaf():
             return()
-        
-        
+
+
         if t.bipartition in goodedges:
             # end of previous island, so new island. Cannot be the root
             islandId = countIsland = countIsland+1
@@ -159,20 +159,163 @@ def getIslands(t,goodedges):
                 islands[islandId].add(t.label)
                 sizeIslands[islandId]+=1
             node_island[t]=islandId
-            
+
             for c in t.child_node_iter():
                 mytraversal(c,is_rooted,islandId)
 
     mytraversal(t.seed_node, t.is_rooted)
     return(islands,node_island,sizeIslands)
 
+# define label2int according to (Day 1985) to have contiguous integers for
+# each clade, and define a clade by the left-most and right-most identifiers,
+# such as [4,7] for the clade [4,5,6,7]
+def buildX(T):
+    X = []
+    n = len(T.leaf_nodes())
+    tax2id = {}
+    n2bip = {}
+
+    def buildX_r(T):
+        if T.is_leaf():
+            # left right id2taxon nodeT1 nodeT2 sizeIsland1 sizeIsland2 labels1 labels2
+            X.append([0,0,T.taxon,0,0,0,0,set(),set()])
+            i = len(X)-1
+            tax2id[T.taxon] = i
+            return(i,i)
+        else:
+            min_l=n
+            max_r=0
+            for c in T.child_node_iter():
+                l,r = buildX_r(c)
+                min_l=min(l,min_l)
+                max_r=max(r,max_r)
+            X[min_l][0]=X[max_r][0]=min_l
+            X[min_l][1]=X[max_r][1]=max_r
+            X[min_l][3]=X[max_r][3]=T
+            n2bip[T]=[min_l,max_r]
+            return(min_l,max_r)
+    buildX_r(T.seed_node)
+    return(X,tax2id,n2bip)
+
+def findgood(T,X,tax2id):
+    n2bip = {}
+    n = len(T.leaf_nodes())
+    def findgood_r(t):
+        if t.is_leaf():
+            i = tax2id[t.taxon]
+            return(i,i,1)
+        else:
+            min_l=n
+            max_r=0
+            tot_w=0 
+            for c in t.child_node_iter(): 
+                l,r,w = findgood_r(c)
+                min_l=min(l,min_l)
+                max_r=max(r,max_r)
+                tot_w+=w
+            if max_r-min_l+1 == tot_w:
+                if (X[min_l][0]==min_l and X[min_l][1]==max_r):
+                    X[min_l][4]=t
+                    n2bip[t]=[min_l,max_r]
+                elif (X[max_r][0]==min_l and X[max_r][1]==max_r):
+                    X[max_r][4]=t
+                    n2bip[t]=[min_l,max_r]
+            return(min_l,max_r,tot_w)
+    findgood_r(T.seed_node)
+    return(n2bip)
+
+# trick is now
+def getIslands2(t,X,n2bip,isT1):
+
+    #                         ____
+    #                        /
+    #                 **** x6
+    #                *       \___
+    #         **** x3                ......
+    #        *       \___    ______x7
+    #   ----x1              /        ...
+    #        *       **** x4        ____
+    #         **** x2       ``--    /
+    #                *********** x5
+    #                              \_____
+    #
+
+
+    n = len(X)
+    off = 5 if isT1 else 6
+
+    def mytraversal(t,is_rooted,parentIslandId=0):
+
+        if t.is_leaf():
+            return()
+
+        try:
+            [l,r] = n2bip[t]
+        except KeyError:
+            l=r=0 #dummy value 
+
+        row=-1
+        if (X[l][0]==l and X[l][1]==r and X[l][4]!=0):
+            row=l
+        elif (X[r][0]==l and X[r][1]==r and X[r][4]!=0):
+            row=r
+
+        # clade is in common 
+        if row > -1: 
+            # end of previous island, so new island. 
+            islandId = row
+            X[row][off+2].add(t.label) 
+            for c in t.child_node_iter():
+                mytraversal(c,is_rooted,islandId)
+        else:
+            # continue previous island
+            islandId = parentIslandId
+            # we process the node unless it's the fake root of an unrooted tree:
+            if not is_rooted and len(t.adjacent_nodes()) == 2:
+                if t.label != None:
+                    warnings.warn('The root of an unrooted tree should not have a label')
+            else:
+                X[islandId][off+2].add(t.label) 
+                X[islandId][off] += 1 
+
+            for c in t.child_node_iter():
+                mytraversal(c,is_rooted,islandId)
+
+    mytraversal(t.seed_node, t.is_rooted)
+    return()
+
+# def identify_labelled_bipartitions(t):
+#
+#     t.encode_bipartitions()
+#
+#     def recursive_f(n,bipart,bipart2nodes,numTaxa):
+#         if n.is_leaf():
+#             return
+#         for c in n.child_node_iter():
+#             if not c.is_leaf():
+#                 numTaxaC = bin(c.bipartition.split_bitmask).count('1')
+#                 numTaxaN = numTaxa - numTaxaC
+#
+#                 # at the start of the recursion, one subtree might contain all taxa
+#                 # minus the other one so we must ignore this trivial bipartition
+#                 if numTaxaN > 1:
+#                     bipart.append(c.bipartition)
+#                     bipart2nodes[c.bipartition] = [c,n]
+#                 recursive_f(c,bipart,bipart2nodes,numTaxa)
+# 
+#     numTaxa = len(t.leaf_nodes())
+#     bipart = []
+#     bipart2nodes = {}
+#     recursive_f(t.seed_node,bipart,bipart2nodes,numTaxa)
+#     return(bipart,bipart2nodes)
+#
 
 def computeELRF(intree1,intree2):
     """
-    Function to estimate the edge-based labeled Robinson-Foulds distance. 
-    This is a heuristic which returns an upper bound on the distance. 
+    Function to estimate the edge-based labeled Robinson-Foulds distance.
+    This is a heuristic which returns an upper bound on the distance.
 
-    Trees need to have their inner nodes with a label attribute "speciation" 
+    Trees need to have their inner nodes with a label attribute "speciation"
     or "duplication". To correctly process gene trees from Ensembl, use the
     :func:`parseEnsemblLabels`.
 
@@ -211,7 +354,7 @@ def computeELRF(intree1,intree2):
             simple_rf += 1
         else:
             tocollapse2.append(k)
-    logging.debug('***')        
+    logging.debug('***')
     logging.info('step 1, collapse consist. edges  %d' % simple_rf)
     logging.info('        remaining to collapse:   {} and {}'.format(
         len(tocollapse1),len(tocollapse2)))
@@ -220,16 +363,16 @@ def computeELRF(intree1,intree2):
     logging.debug(t1.as_string("newick"))
     logging.debug(t2.as_string("newick"))
 
-    # PART II:  identifying the connected components of edges to be 
+    # PART II:  identifying the connected components of edges to be
     #           collapsed and recording the ends of the longest path
     #
     # The idea of this function is to go from root to leaves,
     # and then, on the way back, compute the longest path of
     # each component to be collapsed.
-    # Within each component, we need to keep track of three potential 
-    # cases: 
+    # Within each component, we need to keep track of three potential
+    # cases:
     #  (1) the longest path spans over the edge (n.edge) in question,
-    #      in which case its total length is still undetermined 
+    #      in which case its total length is still undetermined
     #  (2) the longest path spans over two of the children of n. In
     #      this case the length is known but the type needs to be
     #      determined
@@ -309,7 +452,7 @@ def computeELRF(intree1,intree2):
                         if bestpath.length % 2 == 0:
                             assert bestpath.n1.label == bestpath.n2.label
                         else:
-                            assert bestpath.n1.label != bestpath.n2.label 
+                            assert bestpath.n1.label != bestpath.n2.label
                     else:
                         bestpath = case1[0]
                         bestpath.n2 = copy.deepcopy(n)
@@ -332,12 +475,12 @@ def computeELRF(intree1,intree2):
                     n.label = "arbitrary"
             # reset counts
             return([maxpath(),maxpath()])
-    
-    
+
+
     ob1 = ordered_bipartitions(t1)
     ob2 = ordered_bipartitions(t2)
 
-    
+
     path_flip = 0
     tot_rf = simple_rf + len(tocollapse1) + len(tocollapse2)
     out1 = {}
@@ -352,7 +495,7 @@ def computeELRF(intree1,intree2):
     for n in t2.internal_nodes():
         if n.bipartition in tocollapse2:
             n.edge.collapse()
-                    
+
     logging.info('step 2, #component t1            {}'.format(len(out1)))
     logging.debug(out1)
     logging.info('        #component t2            {}'.format(len(out2)))
@@ -367,10 +510,10 @@ def computeELRF(intree1,intree2):
     ## PART 3:  flipping the nodes, if needed, and checking whether
     ##    arbitary vs arbitrary comparisons can save a flip by going
     ##    over an expansion instead of a contraction.
-    
+
     ob1 = ordered_bipartitions(t1)
     ob2 = ordered_bipartitions(t2)
-    
+
     def branches_at_end(path,tocollapse):
         tc1 = set([t.split_bitmask for t in tocollapse])
 
@@ -393,8 +536,8 @@ def computeELRF(intree1,intree2):
     # we use LRF for the final relabelling
     end_flip = computeLRF(t1,t2)
     logging.info('step 3, perform remaining flips: {} '.format(end_flip))
-    
-    
+
+
     erf = tot_rf+path_flip+end_flip
     logging.info('TOTAL:                           {}'.format(erf))
     return(erf)
@@ -411,7 +554,7 @@ def cloneAndReroot(t):
 
 
 def identify_labelled_bipartitions(t):
-  
+
     t.encode_bipartitions()
 
     def recursive_f(n,bipart,bipart2nodes,numTaxa):
@@ -422,13 +565,13 @@ def identify_labelled_bipartitions(t):
                 numTaxaC = bin(c.bipartition.split_bitmask).count('1')
                 numTaxaN = numTaxa - numTaxaC
 
-                # at the start of the recursion, one subtree might contain all taxa 
+                # at the start of the recursion, one subtree might contain all taxa
                 # minus the other one so we must ignore this trivial bipartition
                 if numTaxaN > 1:
                     bipart.append(c.bipartition)
                     bipart2nodes[c.bipartition] = [c,n]
                 recursive_f(c,bipart,bipart2nodes,numTaxa)
-                
+
     numTaxa = len(t.leaf_nodes())
     bipart = []
     bipart2nodes = {}
@@ -460,28 +603,28 @@ def ordered_bipartitions(intree):
 
 def mutateLabeledTree(tree, n, p_flip=0.3, model='LRF'):
     """
-    Function to perform random edits to labeled tree. For each ``n`` edit, the 
-    probability of a flip is specified by p_flip, and the rest of the 
-    probability density is evenly split among all potential edges to flip and 
+    Function to perform random edits to labeled tree. For each ``n`` edit, the
+    probability of a flip is specified by p_flip, and the rest of the
+    probability density is evenly split among all potential edges to flip and
     all nodes with degree >3.
     Returns a new tree (leaves the input tree unchanged)
 
     :param tree: a labeled tree as Dendropy object
     :param n: number of edits
     :param p_flip: probability of flipping between "duplication" and "speciation" state (0.3 by default)
-    :param model: either ELRF, which requires edge additions/removals to be between same types, or LRF (default), which has no such requirement.  
+    :param model: either ELRF, which requires edge additions/removals to be between same types, or LRF (default), which has no such requirement.
     """
     t = tree.clone(depth=1)
     e = f = c = 0
-    
+
     # if the root is of degree 2, collapse one of the two edges
     # (won't affect the topology, but this will ensure that further collapses are meaningful)
     t.update_bipartitions()
     logging.debug(t)
     for i in range(0, n):
         logging.debug(i)
-        #potential nodes                                                                                                                     
-        potential_nodes_to_collapse = [] 
+        #potential nodes           
+        potential_nodes_to_collapse = []
         potential_nodes_to_expand = []
         for n in t.internal_nodes():
             # for expansions and contractions, skip the (fake) root of an unrooted tree
@@ -491,31 +634,31 @@ def mutateLabeledTree(tree, n, p_flip=0.3, model='LRF'):
                 continue
             if nch >= 3:
                 potential_nodes_to_expand.append(n)
-            # for contraction, skip any root node                                                                                                         
-            if n.parent_node == None:                                                                                                        
-                continue                                                                                                                     
+            # for contraction, skip any root node            
+            if n.parent_node == None:           
+                continue           
             if (n.label == n.parent_node.label and n.label != None) or model=='LRF':
-                potential_nodes_to_collapse.append(n)                                                                                        
-        potential_nodes_to_flip = [n for n in t.internal_nodes() if n.label != None]    
-                                                                                                                                             
-        ncol = len(potential_nodes_to_collapse)                                                                                              
-        nflip = len(potential_nodes_to_flip)                                                                                                 
-        nexp = len(potential_nodes_to_expand)                   
-                                                                                                                                             
-        if random.random() < p_flip:                                                                                                         
-            flip_node(potential_nodes_to_flip[random.randint(0,nflip-1)])                                                                    
-            f += 1                                                                                                                           
-        else:                                                                                                                                
-            x = random.randint(0,ncol+nexp-1)                                                                                                
-            if x < ncol:                                                                                                                     
-                collapse_node(potential_nodes_to_collapse[x],model=model)                                                                                
-                c += 1                                                                                                                       
-            else:                                                                                                                            
-                e += 1                                                                                                                       
-                extend_node(potential_nodes_to_expand[x-ncol],model=model)                                                                               
-        logging.debug(t)                                                                                                                     
-    logging.info('#flips %s #col %s, #exp %s',f,c,e)                                                                                         
-    return(t) 
+                potential_nodes_to_collapse.append(n)        
+        potential_nodes_to_flip = [n for n in t.internal_nodes() if n.label != None]
+                                   
+        ncol = len(potential_nodes_to_collapse) 
+        nflip = len(potential_nodes_to_flip)    
+        nexp = len(potential_nodes_to_expand)   
+                                   
+        if random.random() < p_flip:            
+            flip_node(potential_nodes_to_flip[random.randint(0,nflip-1)]) 
+            f += 1                 
+        else:                      
+            x = random.randint(0,ncol+nexp-1)   
+            if x < ncol:           
+                collapse_node(potential_nodes_to_collapse[x],model=model)
+                c += 1             
+            else:                  
+                e += 1             
+                extend_node(potential_nodes_to_expand[x-ncol],model=model)            
+        logging.debug(t)           
+    logging.info('#flips %s #col %s, #exp %s',f,c,e)         
+    return(t)
 
 def collapse_node(node,model='LRF'):
     logging.debug(node)
@@ -553,18 +696,18 @@ def extend_node(node, model='LRF'):
     children = node.child_nodes()
     # shuffle the array
     random.shuffle(children)
-    
+
     node.clear_child_nodes()
     newlab = node.label if model == 'ELRF' else random.choice(['speciation','duplication'])
     new = node.add_child(dendropy.Node(label=node.label))
     # choose between 2 and n-1 children to be connected to the new node
-    k = random.randint(2,len(children)-1) 
+    k = random.randint(2,len(children)-1)
     for i in range(0,len(children)):
-        # add the first k 
-        if i < k:                                                                                                                            
-            new.add_child(children[i])                                                                                                       
-        else:                                                                                                                                
-            node.add_child(children[i])             
+        # add the first k
+        if i < k:
+            new.add_child(children[i])          
+        else:
+            node.add_child(children[i]) 
 
 
 def parseEnsemblLabels(intree):
@@ -596,11 +739,11 @@ def parseEnsemblLabels(intree):
 
 def randomLabels(intree, p_speciation=0.7):
     """
-    Function to assign random speciation and duplication nodes to a tree. 
+    Function to assign random speciation and duplication nodes to a tree.
     Returns a new tree (leaves the input tree unchanged)
 
     :param intree: a tree as Dendropy object
-    :param p_speciation: probability of a speciation node. 
+    :param p_speciation: probability of a speciation node.
     """
     t = intree.clone(depth=1)
     for n in t.internal_nodes():
@@ -613,7 +756,7 @@ def randomLabels(intree, p_speciation=0.7):
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
-        ts1, ts2 = sys.argv[1:3] 
+        ts1, ts2 = sys.argv[1:3]
     else:
         raise Exception('invalid arguments')
 
