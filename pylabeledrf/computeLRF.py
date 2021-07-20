@@ -577,7 +577,7 @@ def computeELRF(intree1,intree2):
     ##    arbitary vs arbitrary comparisons can save a flip by going
     ##    over an expansion instead of a contraction.
 
-    ob1 = ordered_bipartitions(t config pull.rebase falset1)
+    ob1 = ordered_bipartitions(t1)
     ob2 = ordered_bipartitions(t2)
 
     def branches_at_end(path,tocollapse):
