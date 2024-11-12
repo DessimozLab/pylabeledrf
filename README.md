@@ -10,8 +10,8 @@ From version 0.2 onwards, pylabeledrf includes two functions:
 ## Citation
 If you use our package in your work, please consider citing:
 
- - For LRF: Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Yannis Nevers, *A linear time solution to the Labeled Robinson-Foulds distance problem*, submitted 
- - For ELRF: Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Manuel Lafond, Gabriela Lobinska, *Extending the Robinson-Foulds distance to reconciled trees*, APBC 2020 and BMC Genomics, in press
+ - For LRF: Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Yannis Nevers, *A linear time solution to the Labeled Robinson-Foulds distance problem*, Systematic Biology 71(6):1391–1403 2022
+ - For ELRF: Samuel Briand, Christophe Dessimoz, Nadia El-Mabrouk, Manuel Lafond, Gabriela Lobinska, *Extending the Robinson-Foulds distance to reconciled trees*, APBC 2020 and BMC Genomics, 21(S10) 2020
 
 
 ## Installation
