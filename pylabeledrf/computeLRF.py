@@ -167,6 +167,9 @@ def computeLRF(intree1,intree2):
         mytraversal(t.seed_node, t.is_rooted)
         return()
 
+    if not isinstance(intree1, dendropy.Tree) or not isinstance(intree2, dendropy.Tree):
+        raise ValueError("input trees must both be dendropy Tree objects")
+
     # check that the taxon namespace is consistent
     if intree1.taxon_namespace != intree2.taxon_namespace:
         raise ValueError('Cannot compare trees defined with different taxon_namespace')

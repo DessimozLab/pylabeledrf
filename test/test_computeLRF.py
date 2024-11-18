@@ -31,5 +31,21 @@ class UtilTest(unittest.TestCase):
         res = computeLRF(t3,t4)
         self.assertEqual(res,5)
 
+
+class ErrorTests(unittest.TestCase):
+    def test_raises_error_if_not_same_taxon_namespace(self):
+        t1 = dendropy.Tree.get_from_string("(A,(B,C)duplication);", schema="newick")
+        t2 = dendropy.Tree.get_from_string("(A,(B,C)duplication);", schema="newick")
+        with self.assertRaises(ValueError):
+            computeLRF(t1, t2)
+
+    def test_raises_no_input(self):
+        with self.assertRaises(TypeError):
+            computeLRF()
+
+    def test_raises_invalid_argument_types(self):
+        with self.assertRaises(ValueError):
+            computeLRF('((A,B),C);', '(A,(B,C));')
+
 if __name__ == '__main__':
         unittest.main()
