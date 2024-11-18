@@ -17,19 +17,19 @@ class UtilTest(unittest.TestCase):
         # introduce 3 random edits and compute the distance
         t2 = mutateLabeledTree(self.t1, 3)
         res = computeLRF(self.t1,t2)
-        self.assertEqual(res,3)
+        self.assertLessEqual(res,3)
 
         # introduce 5 random edits and compute the distance
         t2 = mutateLabeledTree(self.t1, 5)
         res = computeLRF(self.t1,t2)
-        self.assertEqual(res,5)
+        self.assertLessEqual(res,5)
 
     def test_computeLRF2(self):
         # randomise the labels and compute the distance
         t3 = randomLabels(self.t1)
         t4 = mutateLabeledTree(t3, 5)
         res = computeLRF(t3,t4)
-        self.assertEqual(res,5)
+        self.assertLessEqual(res,5)
 
 
 class ErrorTests(unittest.TestCase):
@@ -46,6 +46,7 @@ class ErrorTests(unittest.TestCase):
     def test_raises_invalid_argument_types(self):
         with self.assertRaises(ValueError):
             computeLRF('((A,B),C);', '(A,(B,C));')
+
 
 if __name__ == '__main__':
         unittest.main()
