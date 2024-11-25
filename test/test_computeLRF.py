@@ -32,6 +32,16 @@ class UtilTest(unittest.TestCase):
         self.assertLessEqual(res,5)
 
 
+class IssueTests(unittest.TestCase):
+    def test_issue2(self):
+        t1 = '(((6,9)speciation,((13,14)duplication,12)speciation)speciation,2)speciation;'
+        t2 = '(2,(9,(((13,14)duplication,12)speciation,6)speciation)duplication)speciation;'
+        taxa = dendropy.TaxonNamespace()
+        tree1 = dendropy.Tree.get_from_string(t1, schema="newick", taxon_namespace=taxa)
+        tree2 = dendropy.Tree.get_from_string(t2, schema="newick", taxon_namespace=taxa)
+        self.assertEqual(computeLRF(tree1, tree2), 2)
+
+
 class ErrorTests(unittest.TestCase):
     def test_raises_error_if_not_same_taxon_namespace(self):
         t1 = dendropy.Tree.get_from_string("(A,(B,C)duplication);", schema="newick")
