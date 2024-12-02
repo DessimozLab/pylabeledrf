@@ -1,6 +1,7 @@
 import unittest
 from pylabeledrf.computeLRF import *
 import dendropy
+from dendropy.calculate.treecompare import symmetric_difference
 import sys
 import os
 
@@ -18,11 +19,13 @@ class UtilTest(unittest.TestCase):
         t2 = mutateLabeledTree(self.t1, 3)
         res = computeLRF(self.t1,t2)
         self.assertLessEqual(res,3)
+        self.assertGreaterEqual(res, symmetric_difference(self.t1, t2))
 
         # introduce 5 random edits and compute the distance
         t2 = mutateLabeledTree(self.t1, 5)
         res = computeLRF(self.t1,t2)
         self.assertLessEqual(res,5)
+        self.assertGreaterEqual(res, symmetric_difference(self.t1, t2))
 
     def test_computeLRF2(self):
         # randomise the labels and compute the distance
